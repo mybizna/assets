@@ -46,7 +46,7 @@ class MybiznaAssetsProvider extends ServiceProvider
 
             $modules_str = json_encode($modules, JSON_PRETTY_PRINT);
             
-            $fp = fopen(realpath(base_path()) . $DS . 'modules_statuses.json', 'w');
+            $fp = fopen(realpath(base_path()) . $DS . 'modules_statuses.json', 'w+');
             fwrite($fp, $modules_str);
             fclose($fp);
         }
