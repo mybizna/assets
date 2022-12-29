@@ -1,10 +1,7 @@
 {
     "name": "mybizna/assets",
     "description": "Mybizna Assets",
-    "type": "library",
-    "require": {
-        "laravel/laravel": "^9.4"
-    },
+    "version": "0.0.1",
     "license": "GPL-3.0-or-later",
     "autoload": {
         "psr-4": {
@@ -12,6 +9,11 @@
         }
     },
     "authors": [
+        {
+            "name": "Mybizna",
+            "homepage": "https://mybizna.com",
+            "email": "info@mybizna.com"
+        },
         {
             "name": "Dedan Irungu",
             "email": "dedanirungu@gmail.com"
