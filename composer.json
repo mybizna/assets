@@ -3,7 +3,7 @@
     "description": "Mybizna Assets",
     "type": "library",
     "keywords": ["api","restful","laravel"],
-    "version": "0.1.1",
+    "version": "0.1.2",
     "license": "GPL-3.0-or-later",
     "autoload": {
         "psr-4": {
@@ -28,13 +28,5 @@
                 "Mybizna\\Assets\\Providers\\MybiznaAssetsProvider"
             ]
         }
-    },
-    "scripts": {
-        "post-update-cmd": [
-            "@php artisan vendor:publish --provider='Mybizna\\Assets\\Providers\\MybiznaAssetsProvider'"
-        ],
-        "post-install-cmd": [
-            "@php artisan vendor:publish --provider='Mybizna\\Assets\\Providers\\MybiznaAssetsProvider'"
-        ]
     }
 }

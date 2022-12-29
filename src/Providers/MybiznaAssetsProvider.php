@@ -26,6 +26,6 @@ class MybiznaAssetsProvider extends ServiceProvider
         
         $this->publishes([
             base_path('vendor/mybizna/assets/src/mybizna') => public_path('mybizna'),
-        ], 'public');
+        ], 'laravel-assets');
     }
 }
