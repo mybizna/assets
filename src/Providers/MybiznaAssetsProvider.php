@@ -23,8 +23,9 @@ class MybiznaAssetsProvider extends ServiceProvider
      */
     public function boot()
     {
+        
         $this->publishes([
-            __DIR__ . '../mybizna' => public_path('mybizna'),
+            base_path('vendor/mybizna/assets/src/mybizna') => public_path('mybizna'),
         ], 'public');
     }
 }
