@@ -3,7 +3,7 @@
     "description": "Mybizna Assets",
     "type": "library",
     "keywords": ["api","restful","laravel"],
-    "version": "0.9.7.5",
+    "version": "0.9.7.6",
     "license": "GPL-3.0-or-later",
     "autoload": {
         "psr-4": {
