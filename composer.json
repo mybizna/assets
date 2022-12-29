@@ -1,7 +1,9 @@
 {
     "name": "mybizna/assets",
     "description": "Mybizna Assets",
-    "version": "0.0.1",
+    "type": "library",
+    "keywords": ["api","restful","laravel"],
+    "version": "0.0.2",
     "license": "GPL-3.0-or-later",
     "autoload": {
         "psr-4": {
@@ -19,5 +21,12 @@
             "email": "dedanirungu@gmail.com"
         }
     ],
-    "minimum-stability": "stable"
+    "minimum-stability": "stable",
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Mybizna\\Assets\\Providers\\MybiznaAssetsProvider"
+            ]
+        }
+    }
 }
