@@ -85,7 +85,7 @@ class MybiznaAssetsProvider extends ServiceProvider
             ksort($new_versions);
 
             $this->saveFile($realpath . $DS . 'modules_statuses.json', $modules);
-            $this->saveFile($realpath . $DS . 'versions.json', ksort($new_versions));
+            $this->saveFile($realpath . $DS . 'versions.json', $new_versions);
         }
 
         if ($need_migration) {
