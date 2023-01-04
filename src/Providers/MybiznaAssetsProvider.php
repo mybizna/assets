@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\ServiceProvider;
 use Legodion\Lucid\Commands\MigrateCommand;
+use Modules\Base\Classes\Datasetter;
 
 class MybiznaAssetsProvider extends ServiceProvider
 {
@@ -53,6 +54,7 @@ class MybiznaAssetsProvider extends ServiceProvider
     {
         $realpath = realpath(base_path());
         $migrate_command = new MigrateCommand();
+        $datasetter = new Datasetter();
 
         $DS = DIRECTORY_SEPARATOR;
         $modules_path = $realpath . $DS . 'Modules';
@@ -91,6 +93,7 @@ class MybiznaAssetsProvider extends ServiceProvider
         if ($need_migration) {
             Artisan::call('migrate');
             $migrate_command->migrateModels(true);
+            $datasetter->dataProcess();
         }
     }
 
