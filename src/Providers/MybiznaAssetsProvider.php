@@ -27,7 +27,7 @@ class MybiznaAssetsProvider extends ServiceProvider
     public function boot()
     {
 
-        if (DB_NAME) {
+        if (defined('DB_NAME')) {
             Config::set('database.connections.mysql.database', DB_NAME);
             Config::set('database.connections.mysql.username', DB_USER);
             Config::set('database.connections.mysql.password', DB_PASSWORD);
