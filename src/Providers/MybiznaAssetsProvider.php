@@ -2,10 +2,11 @@
 
 namespace Mybizna\Assets\Providers;
 
+use Artisan;
+use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\ServiceProvider;
 use Legodion\Lucid\Commands\MigrateCommand;
-use Artisan;
 
 class MybiznaAssetsProvider extends ServiceProvider
 {
@@ -41,9 +42,11 @@ class MybiznaAssetsProvider extends ServiceProvider
         $this->loadRoutesFrom(__DIR__ . '/../routes/web.php');
         $this->loadViewsFrom(__DIR__ . '/../views', 'mybizna');
 
-        
+        if (!App::runningInConsole()) {
+            // app is running in console
+            $this->processModule();
+        }
 
-        $this->processModule();
     }
 
     private function processModule()
@@ -77,8 +80,10 @@ class MybiznaAssetsProvider extends ServiceProvider
                     $new_versions[$module_name] = $composer['version'];
                 }
             }
+
             ksort($modules);
             ksort($new_versions);
+
             $this->saveFile($realpath . $DS . 'modules_statuses.json', $modules);
             $this->saveFile($realpath . $DS . 'versions.json', ksort($new_versions));
         }
