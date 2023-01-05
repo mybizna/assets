@@ -42,8 +42,6 @@ class MybiznaAssetsProvider extends ServiceProvider
             base_path('vendor/mybizna/assets/src/mybizna') => public_path('mybizna'),
         ], 'laravel-assets');
 
-        $this->loadRoutesFrom(__DIR__ . '/../routes/web.php');
-        $this->loadViewsFrom(__DIR__ . '/../views', 'mybizna');
 
         if (!App::runningInConsole()) {
             // app is running in console
