@@ -2,9 +2,11 @@
 
 namespace Mybizna\Assets\Providers;
 
+use App\Models\User;
 use Artisan;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\ServiceProvider;
 use Legodion\Lucid\Commands\MigrateCommand;
 use Modules\Base\Classes\Datasetter;
@@ -93,8 +95,37 @@ class MybiznaAssetsProvider extends ServiceProvider
         if ($need_migration) {
             Artisan::call('migrate');
             $migrate_command->migrateModels(true);
+            $this->initiateUser();
             $datasetter->dataProcess();
         }
+    }
+
+    private function initiateUser()
+    {
+        $userCount = User::count();
+
+        if (!$userCount) {
+
+            $user_cls = new User();
+
+            if (defined('WP_USER_LIST')) {
+                $wp_user_list = WP_USER_LIST;
+                foreach ($wp_user_list as $key => $wp_user) {
+                    $user_cls->password = Hash::make(uniqid());
+                    $user_cls->email = $wp_user->user_email;
+                    $user_cls->name = $wp_user->user_nicename;
+                    $user_cls->save();
+                }
+
+            } else {
+
+                $user_cls->password = Hash::make('admin');
+                $user_cls->email = 'admin@admin.com';
+                $user_cls->name = 'Admin User';
+                $user_cls->save();
+            }
+        }
+
     }
 
     private function getVersions()
