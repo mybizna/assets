@@ -42,11 +42,23 @@ class MybiznaAssetsProvider extends ServiceProvider
             base_path('vendor/mybizna/assets/src/mybizna') => public_path('mybizna'),
         ], 'laravel-assets');
 
-
+        $this->initializeConfig();
+        
         if (!App::runningInConsole()) {
             // app is running in console
             $this->processModule();
         }
+
+    }
+
+    private function initializeConfig()
+    {
+        $logging_config = $this->app['config']->get('logging', []);
+        $logging_config['channels']['datasetter'] = [
+            'driver' => 'single',
+            'path' => storage_path('logs/datasetter.log'),
+        ];
+        $this->app['config']->set('mybizna', $logging_config);
 
     }
 
