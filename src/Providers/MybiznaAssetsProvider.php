@@ -4,6 +4,7 @@ namespace Mybizna\Assets\Providers;
 
 use App\Models\User;
 use Artisan;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Hash;
@@ -67,10 +68,11 @@ class MybiznaAssetsProvider extends ServiceProvider
                 if (!$fileinfo->isDot() && $fileinfo->isDir()) {
                     $module_name = $fileinfo->getFilename();
                     $module_folder = $modules_path . $DS . $module_name . $DS . 'views';
-
-                    $this->publishes([
-                        base_path($module_folder) => public_path('mybizna/assets/' . Str::lower($module_name)),
-                    ], 'laravel-assets');
+                    if (!File::isDirectory($module_folder)) {
+                        $this->publishes([
+                            base_path('Modules/'.$module_name.'/views') => public_path('mybizna/assets/' . Str::lower($module_name)),
+                        ], 'laravel-assets');
+                    }
 
                 }
             }
