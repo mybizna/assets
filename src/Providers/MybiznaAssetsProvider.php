@@ -58,7 +58,7 @@ class MybiznaAssetsProvider extends ServiceProvider
             'driver' => 'single',
             'path' => storage_path('logs/datasetter.log'),
         ];
-        $this->app['config']->set('mybizna', $logging_config);
+        $this->app['config']->set('logging', $logging_config);
 
     }
 
