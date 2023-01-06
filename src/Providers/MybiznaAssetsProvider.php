@@ -106,8 +106,8 @@ class MybiznaAssetsProvider extends ServiceProvider
 
             $user_cls = new User();
 
-            if (defined('WP_USER_LIST')) {
-                $wp_user_list = WP_USER_LIST;
+            if (defined('MYBIZNA_USER_LIST')) {
+                $wp_user_list = MYBIZNA_USER_LIST;
                 foreach ($wp_user_list as $key => $wp_user) {
                     $user_cls->password = Hash::make(uniqid());
                     $user_cls->email = $wp_user->user_email;
