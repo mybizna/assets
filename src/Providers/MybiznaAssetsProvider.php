@@ -41,15 +41,41 @@ class MybiznaAssetsProvider extends ServiceProvider
         $this->publishes([
             base_path('vendor/mybizna/assets/src/mybizna') => public_path('mybizna'),
         ], 'laravel-assets');
+
         $this->publishes([
-            base_path('vendor/mybizna/assets/src/components') => public_path('assets/components'),
+            base_path('vendor/mybizna/assets/src/components') => public_path('mybizna/assets/components'),
         ], 'laravel-assets');
 
+        $this->moduleComponents();
+
         $this->initializeConfig();
-        
+
         if (!App::runningInConsole()) {
             // app is running in console
             $this->processModule();
+        }
+
+    }
+    private function moduleComponents()
+    {
+
+        $DS = DIRECTORY_SEPARATOR;
+
+        $modules_path = realpath(base_path()) . $DS . 'Modules';
+
+        if (is_dir($modules_path)) {
+            $dir = new \DirectoryIterator($modules_path);
+            foreach ($dir as $fileinfo) {
+                if (!$fileinfo->isDot() && $fileinfo->isDir()) {
+                    $module_name = $fileinfo->getFilename();
+                    $module_folder = $modules_path . $DS . $module_name . $DS . 'views';
+
+                    $this->publishes([
+                        base_path($module_folder) => public_path('mybizna/assets/' . Str::lower($module_name)),
+                    ], 'laravel-assets');
+
+                }
+            }
         }
 
     }
