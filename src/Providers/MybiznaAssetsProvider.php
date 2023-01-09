@@ -138,7 +138,7 @@ class MybiznaAssetsProvider extends ServiceProvider
         }
 
         if (!File::isDirectory($realpath . $DS . 'resources' . $DS . 'views' . $DS . 'auth')) {
-            Artisan::call('make:auth');
+            Artisan::call('ui bootstrap --auth');
         }
     }
 
