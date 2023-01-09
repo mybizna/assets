@@ -137,9 +137,6 @@ class MybiznaAssetsProvider extends ServiceProvider
             $datasetter->dataProcess();
         }
 
-        if (!File::isDirectory($realpath . $DS . 'resources' . $DS . 'views' . $DS . 'auth')) {
-            Artisan::call('ui bootstrap --auth');
-        }
     }
 
     private function initiateUser()
@@ -204,5 +201,6 @@ class MybiznaAssetsProvider extends ServiceProvider
         chmod($path, 0775);
         $fp = fopen($path, 'w');
         fwrite($fp, $modules_str);
-        fclose($fp);}
+        fclose($fp);
+    }
 }
