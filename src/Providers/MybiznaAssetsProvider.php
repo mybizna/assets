@@ -4,14 +4,14 @@ namespace Mybizna\Assets\Providers;
 
 use App\Models\User;
 use Artisan;
-use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Str;
 use Legodion\Lucid\Commands\MigrateCommand;
 use Modules\Base\Classes\Datasetter;
-use Illuminate\Support\Str;
 
 class MybiznaAssetsProvider extends ServiceProvider
 {
@@ -44,7 +44,6 @@ class MybiznaAssetsProvider extends ServiceProvider
             base_path('vendor/mybizna/assets/src/mybizna') => public_path('mybizna'),
         ], 'laravel-assets');
 
-
         $this->moduleComponents();
 
         $this->initializeConfig();
@@ -70,7 +69,7 @@ class MybiznaAssetsProvider extends ServiceProvider
                     $module_folder = $modules_path . $DS . $module_name . $DS . 'views';
                     if (!File::isDirectory($module_folder)) {
                         $this->publishes([
-                            base_path('Modules/'.$module_name.'/views') => public_path('mybizna/assets/' . Str::lower($module_name)),
+                            base_path('Modules/' . $module_name . '/views') => public_path('mybizna/assets/' . Str::lower($module_name)),
                         ], 'laravel-assets');
                     }
 
@@ -136,6 +135,10 @@ class MybiznaAssetsProvider extends ServiceProvider
             $migrate_command->migrateModels(true);
             $this->initiateUser();
             $datasetter->dataProcess();
+        }
+
+        if (!File::isDirectory($realpath . $DS . 'resources' . $DS . 'views' . $DS . 'auth')) {
+            Artisan::call('make:auth');
         }
     }
 
