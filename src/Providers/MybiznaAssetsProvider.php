@@ -67,7 +67,7 @@ class MybiznaAssetsProvider extends ServiceProvider
                 if (!$fileinfo->isDot() && $fileinfo->isDir()) {
                     $module_name = $fileinfo->getFilename();
                     $module_folder = $modules_path . $DS . $module_name . $DS . 'views';
-                    if (!File::isDirectory($module_folder)) {
+                    if (File::isDirectory($module_folder)) {
                         $this->publishes([
                             base_path('Modules/' . $module_name . '/views') => public_path('mybizna/assets/' . Str::lower($module_name)),
                         ], 'laravel-assets');
