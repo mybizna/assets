@@ -197,10 +197,14 @@ class MybiznaAssetsProvider extends ServiceProvider
     {
         $modules_str = json_encode($data, JSON_PRETTY_PRINT);
 
-        touch($path);
-        chmod($path, 0775);
-        $fp = fopen($path, 'w');
-        fwrite($fp, $modules_str);
-        fclose($fp);
+        try {
+            touch($path);
+            chmod($path, 0775);
+            $fp = fopen($path, 'w');
+            fwrite($fp, $modules_str);
+            fclose($fp);
+        } catch (\Throwable$th) {
+            //throw $th;
+        }
     }
 }
