@@ -44,6 +44,13 @@ class MybiznaAssetsProvider extends ServiceProvider
             base_path('vendor/mybizna/assets/src/mybizna') => public_path('mybizna'),
         ], 'laravel-assets');
 
+        $migrationFileName = 'add_username_field_in_users_table.php';
+        if (! $this->migrationFileExists($migrationFileName)) {
+            $this->publishes([
+                __DIR__ . "/../database/migrations/{$migrationFileName}.stub" => database_path('migrations/' . date('Y_m_d_His', time()) . '_' . $migrationFileName),
+            ], 'migrations');
+        }
+
         $this->moduleComponents();
 
         $this->initializeConfig();
