@@ -138,6 +138,7 @@ class MybiznaAssetsProvider extends ServiceProvider
         }
 
         if ($need_migration) {
+            Artisan::call('cache:table');
             Artisan::call('migrate');
             $migrate_command->migrateModels(true);
             $this->initiateUser();
