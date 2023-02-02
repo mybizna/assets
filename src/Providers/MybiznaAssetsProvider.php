@@ -45,7 +45,7 @@ class MybiznaAssetsProvider extends ServiceProvider
         ], 'laravel-assets');
 
         $migrationFileName = 'add_username_field_in_users_table.php';
-        if (! $this->migrationFileExists($migrationFileName)) {
+        if (!$this->migrationFileExists($migrationFileName)) {
             $this->publishes([
                 __DIR__ . "/../database/migrations/{$migrationFileName}.stub" => database_path('migrations/' . date('Y_m_d_His', time()) . '_' . $migrationFileName),
             ], 'migrations');
@@ -60,6 +60,21 @@ class MybiznaAssetsProvider extends ServiceProvider
             $this->processModule();
         }
 
+    }
+
+    protected function migrationExists($mgr)
+    {
+        $path = database_path('migrations/');
+        $files = scandir($path);
+        $pos = false;
+        foreach ($files as &$value) {
+            $pos = strpos($value, $mgr);
+            if ($pos !== false) {
+                return true;
+            }
+
+        }
+        return false;
     }
     private function moduleComponents()
     {
