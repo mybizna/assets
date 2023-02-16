@@ -7,7 +7,7 @@
                 <input type="text" class="form-control dropdown-toggle border-none focus:shadow-none"
                     placeholder="Search Any Term." aria-label="Text input with dropdown button"
                     data-bs-toggle="dropdown" aria-expanded="false" />
-                <div class="dropdown-menu dropdown-menu-end search-dropdown p-2 shadow-lg">
+                <div class="dropdown-menu dropdown-menu-end search-dropdown p-2 shadow-lg" :class="widthClass">
                     <b>Search</b>
                     <div class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-1 match-height">
                         <template v-for="(item, index) in $store.state
@@ -21,13 +21,12 @@
                         </template>
 
                         <div>
-                            <b> &nbsp; </b>
+                            <b> {{ "\xA0" }} </b>
                             <div class="text-center">
-                                <button type="submit" class="btn btn-outline-danger btn-sm">
+                                <button type="submit" class="pr-1 btn btn-outline-danger btn-sm mr-1">
                                     Cancel
                                 </button>
-                                &nbsp;&nbsp;
-                                <button type="submit" class="btn bg-primary text-white btn-sm">
+                                <button type="submit" @click="search()" class="btn bg-primary text-white btn-sm ml-1">
                                     Search
                                 </button>
                             </div>
@@ -43,7 +42,7 @@
 
             <a>
                 <small style="font-size: 12px">
-                    Filter: Empty
+                    Filter: {{ JSON.stringify(model) }}
                 </small>
             </a>
         </div>
@@ -68,6 +67,7 @@ export default {
             deep: true
         },
     },
+
     created() {
         var path_params = this.$store.state.system.search_path_params;
 
@@ -89,7 +89,7 @@ export default {
 
         this.$emitter.on('system-set-store', (data) => {
             this.$store.commit('system/search_path_params', [data.module, data.table]);
-           
+
             data['search_fields'].forEach(field => {
                 this.model[field.name] = '';
             });
@@ -98,16 +98,16 @@ export default {
         this.$emitter.on('system-search', (newmodal) => {
 
             var search = this.$store.state.system.search;
-            var model =  newmodal;
-            
-            if(Object.prototype.hasOwnProperty.call(search, newmodal.module) && 
-            Object.prototype.hasOwnProperty.call(search, newmodal.table)){
+            var model = newmodal;
+
+            if (Object.prototype.hasOwnProperty.call(search, newmodal.module) &&
+                Object.prototype.hasOwnProperty.call(search, newmodal.table)) {
                 var oldmodel_str = JSON.stringify(oldmodel)
                 var oldmodel_obj = JSON.parse(oldmodel_str);
 
                 model = { ...oldmodel_obj.search, ...newmodal.search };
             }
-            
+
 
             this.$store.commit('system/search', { module: newmodal.module, table: newmodal.table, search: model });
 
@@ -122,7 +122,34 @@ export default {
             model: {},
             compSearch: '',
             changed_here: false,
-            show_search: false
+            show_search: false,
+            search_filter: '',
+        }
+    },
+    computed: {
+        widthClass() {
+            var window_width = this.$store.state.system.window_width;
+
+            var window_width_flr = Math.floor(this.$store.state.system.window_width / 100) * 100;
+            var window_width_new = window_width_flr;
+
+            if (window_width - window_width_flr > 50) {
+                window_width_new = window_width_flr + 50;
+            }
+
+            if (window_width_new > 1000) {
+                window_width_new = 1000;
+            }
+
+            return `m-w-${window_width_new}`;
+        }
+    },
+    methods: {
+        search() {
+            this.$emitter.emit('search-records', true);
+        },
+        searchFilter() {
+
         }
     },
     beforeDestroy() {

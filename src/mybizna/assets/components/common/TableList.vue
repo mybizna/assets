@@ -1,34 +1,46 @@
 <template>
     <div :class="classes">
         <div :class="'card ' + getCardClassName()">
-            <div class="card-head">
+            <div v-if="$store.state.system.menu_type != 'sidebar'" class="card-head">
                 <div class="flex">
                     <div class="flex-auto">
-                        <div v-if="!is_recordpicker" class="py-2">
+                        <div v-if="!settings.is_recordpicker" class="py-2">
                             <h3 class="inline-block font-medium text-lg text-gray ml-2 mr-5 mb-0">{{ title }}</h3>
                         </div>
                     </div>
-                    <div class="flex-auto">
+
+                    <div v-if="!settings.is_recordpicker && !settings.hide_action_button" class="flex-auto">
                         <div class="text-right  pt-2">
-                            <a class="text-white bg-gradient-to-r from-blue-500 via-blue-600 to-blue-700 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-blue-300 dark:focus:ring-blue-800 font-medium rounded-lg text-sm  py-2 px-3  text-center mr-2"
+                            <a class="whitespace-nowrap text-white bg-gradient-to-r from-blue-500 via-blue-600 to-blue-700 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-blue-300 dark:focus:ring-blue-800 font-medium rounded-lg text-sm  py-2 px-3  text-center mr-2"
                                 @click="addLink()">
                                 <i class="fa fa-plus"></i>
                                 Add New
                             </a>
                         </div>
-
+                    </div>
+                    <div v-if="settings.is_recordpicker" class="flex-auto">
+                        <search-form></search-form>
                     </div>
                 </div>
             </div>
             <div class="card-body p-0">
-                <div class="table-responsive table-responsive-sm" v-bind:style="table_style">
+                <div class="table-responsive overflow-x-scroll" v-bind:style="table_style">
                     <table class="table m-0 p-0">
                         <thead>
                             <tr class="bg-slate-100 px-7">
+
+                                <td v-if="!settings.is_recordpicker && !settings.hide_action_button"
+                                    class="text-center uppercase w-2.5 whitespace-nowrap">
+                                    <input @click="checkedItemsAll" type="checkbox" />
+                                    <span class="form-check-sign">
+                                        <span class="check"></span>
+                                    </span>
+                                </td>
+
                                 <th class="uppercase" scope="col" v-for="(
                                         table_field, index
-                                    ) in table.headers" :key="index" :style="table_field.style"
-                                    :class="table_field.class">
+                                    ) in table_list.headers" :key="index" :style="table_field.style"
+                                    :class="table_field.class + ' text-center uppercase whitespace-nowrap p-1.5'">
                                     {{ table_field.label }}
                                 </th>
                             </tr>
@@ -36,24 +48,22 @@
                         <tbody class="border-none">
                             <template v-if="items.length">
                                 <tr v-for="(item, index) in items" :key="index"
-                                    class="border-b-sky-200 hover:bg-slate-50">
-                                    <td v-if="!hide_action_button">
-                                        <menu-dropdown v-if="!is_recordpicker" :field_list="field_list" :pitem="item"
-                                            :dropdown_menu_list="dropdown_menu_list"></menu-dropdown>
+                                    class="border-b-sky-200 hover:bg-slate-50 border-b border-b-sky-100">
+                                    <td v-if="!settings.is_recordpicker && !settings.hide_action_button"
+                                        class="text-center">
+                                        <input :value="item.id" v-model="checkedItems" class="form-check-input"
+                                            type="checkbox" name="item[]" />
+                                        <span class="form-check-sign">
+                                            <span class="check"></span>
+                                        </span>
+                                    </td>
+
+                                    <td v-if="!settings.hide_action_button">
+                                        <menu-dropdown v-if="!settings.is_recordpicker" :field_list="field_list"
+                                            :pitem="item" :dropdown_menu_list="dropdown_menu_list"></menu-dropdown>
                                         <a v-else class="btn btn-primary btn-sm text-white"
                                             @click="recordPicker(item.id)">Select</a>
                                     </td>
-                                    <th v-if="hide_action_button" scope="row" class="col--check check-column">
-                                        <div class="form-check">
-                                            <label class="form-check-label">
-                                                <input :value="item.id" v-model="checkedItems" class="form-check-input"
-                                                    type="checkbox" name="item[]" />
-                                                <span class="form-check-sign">
-                                                    <span class="check"></span>
-                                                </span>
-                                            </label>
-                                        </div>
-                                    </th>
 
                                     <template v-for="(table_field, index) in table_fields">
                                         <slot :name="key" :row="row">
@@ -70,7 +80,7 @@
                             <tr class="border-b-sky-200" v-else>
                                 <td colspan="20" class="text-center hover:bg-slate-50">
                                     <img class="inline-block w-36 m-6"
-                                        :src='this.$assets_url + "/images/no_data_found.svg"'>
+                                        :src="this.$assets_url + '/images/no_data_found.svg'">
                                 </td>
                             </tr>
                         </tbody>
@@ -78,8 +88,13 @@
                 </div>
             </div>
             <div class="card-foot">
-                <div class="w-full row">
-                    <div class="col-4 col-sm-4">
+
+                <pagination v-if="$store.state.system.window_width < ($responsive_point - 268)" :pagination="pagination"
+                    :loadPage="loadPage">
+                </pagination>
+
+                <div class="flex">
+                    <div class="flex-auto">
                         <FormKit id="page_limit" type="select" v-model="pagination.limit" :options="pagination.limits"
                             validation="required" input-class="$reset form-select form-select-sm
                                     mt-2
@@ -102,59 +117,31 @@
 
 
                     </div>
-                    <div class="col-8 col-sm-4 text-center pt-3">
-
-                        <p class="text-center text-sm text-gray-700">
-                            Showing Page
-                            <span class="font-medium">{{ pagination.page }}</span>
-                            of
-                            <span class="font-medium">{{ pagination.pages }}</span>
-                            results.
-                        </p>
+                    <div class="flex-auto">
+                        <pagination v-if="$store.state.system.window_width >= ($responsive_point - 268)"
+                            :pagination="pagination" :loadPage="loadPage"></pagination>
                     </div>
-                    <div class="col-sm-4">
-                        <nav class="text-right" aria-label="Pagination">
+                    <div class="flex-auto">
+                        <div v-if="!settings.is_recordpicker && !settings.hide_action_button && !(settings.hide_delete_button && !mass_actions.length)"
+                            class="text-right pr-2">
 
-                            <!-- Current: "z-10 bg-indigo-50 border-indigo-500 text-indigo-600", Default: "bg-white border-gray-300 text-gray-500 hover:bg-gray-50" -->
+                            <button class="mt-2 bg-blue-50 border-blue-200 btn btn-sm dropdown-toggle" type="button"
+                                id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false" dot>
+                                Mass Actions
+                            </button>
 
-                            <template v-if="pagination.pages <= 5">
-                                <a v-for="index in getNumbers(1, pagination.pages)" :key="index" href="#"
-                                    :aria-current="index == pagination.page ? 'page' : ''"
-                                    :class="[(index == pagination.page ? 'bg-gray-500 text-gray-50' : '')]"
-                                    class="inline-block bg-gray-50 border-gray-500 text-gray-600 h-9 w-9 leading-8 border text-sm font-medium rounded-full m-1 text-center"
-                                    @click="loadPage(index)">
-                                    {{ index }} </a>
-                            </template>
-
-                            <template v-else>
-                                <a class="cursor-pointer inline-block bg-gray-50 border-gray-500 text-gray-600 h-9 w-9 leading-8 border text-sm font-medium rounded-full m-1 text-center"
-                                    @click="loadPage(1)">
-                                    <i class="fa-solid fa-caret-left"></i>
-                                </a>
-                                <a v-for="index in getNumbers(1, 3)" :key="index"
-                                    :aria-current="index == pagination.page ? 'page' : ''"
-                                    :class="[(index == pagination.page ? 'bg-gray-500 text-gray-50' : '')]"
-                                    class="cursor-pointer inline-block bg-gray-50 border-gray-500 text-gray-600 h-9 w-9 leading-8 border text-sm font-medium rounded-full m-1 text-center"
-                                    @click="loadPage(index)">
-                                    {{ index }} </a>
-                                <span
-                                    class="inline-block  text-gray-600  leading-9 text-sm font-medium m-1 text-center">
-                                    ... </span>
-                                <a v-for="index in getNumbers(pagination.pages - 2, pagination.pages)" :key="index"
-                                    :aria-current="index == pagination.page ? 'page' : ''"
-                                    :class="[(index == pagination.page ? 'bg-gray-500 text-gray-50' : '')]"
-                                    class="cursor-pointer inline-block bg-gray-50 border-gray-500 text-gray-600 h-9 w-9 leading-8 border text-sm font-medium rounded-full m-1 text-center"
-                                    @click="loadPage(index)">
-                                    {{ index }} </a>
-                                <a :class="[(index == pagination.page ? 'bg-gray-500 text-gray-50' : '')]"
-                                    class="cursor-pointer inline-block bg-gray-50 border-gray-500 text-gray-600 h-9 w-9 leading-8 border text-sm font-medium rounded-full m-1 text-center"
-                                    @click="loadPage(pagination.pages)">
-                                    <i class="fa-solid fa-caret-right"></i>
-                                </a>
-                            </template>
-                        </nav>
+                            <ul class="dropdown-menu py-0" aria-labelledby="dropdownMenuLink">
+                                <li v-if="!settings.hide_delete_button">
+                                    <a class="dropdown-item cursor-point" @click="deleteCheckedItems()">Delete</a>
+                                </li>
+                            </ul>
+                        </div>
                     </div>
+
+
                 </div>
+
+
             </div>
         </div>
     </div>
@@ -169,60 +156,28 @@ export default {
         MenuDropdown: window.$func.fetchComponent(
             "components/widgets/MenuDropdown.vue"
         ),
+        Pagination: window.$func.fetchComponent(
+            "components/widgets/Pagination.vue"
+        ),
+        SearchForm: window.$func.fetchComponent(
+            "components/common/SearchForm.vue"
+        ),
     },
     props: {
         model: Object,
         table_snippet: Object,
         title: { type: String, default: "Listing", },
         classes: { type: String, default: "", },
-        module: { type: String, default: "", },
-        table: { type: String, default: "", },
         passed_return_url: { type: String, default: "", },
-        dropdown_menu: { type: Array, default: () => [] },
-        path_param: { type: Array, default: () => [] },
-        search: { type: Array, default: () => [] },
-        search_fields: { type: Array, default: () => [] },
-        table_fields: { type: Array, default: () => [] },
-        schema_fields: { type: Array, default: () => [] },
+        dropdown_menu: { type: Array, default: [] },
+        path_param: { type: Array, default: [] },
+        search: { type: Array, default: [] },
+        search_fields: { type: Array, default: [] },
+        table_fields: { type: Array, default: [] },
+        schema_fields: { type: Array, default: [] },
+        mass_actions: { type: Array, default: [] },
         recordPicker: { type: Object, default: () => { } },
-        is_recordpicker: { type: Boolean, default: false },
-        has_add_button: { type: Boolean, default: true },
-        hide_toolbar: { type: Boolean, default: false },
-        hide_delete_button: { type: Boolean, default: false },
-        hide_action_button: { type: Boolean, default: false },
-        hide_search_form: { type: Boolean, default: false },
-        hide_select_checkbox: { type: Boolean, default: false },
-    },
-    created() {
-        this.preparePathParam();
-        this.processDropdownMenu();
-        this.processFieldList();
-        this.presetTableStructure();
-        this.fetchRecords();
-
-        window.$store.commit("system/subtitle", this.title);
-        window.$store.commit("system/has_search", true);
-        window.$store.commit("system/search_fields", this.search_fields);
-        window.$store.commit("system/is_list", true);
-        window.$store.commit("system/is_edit", false);
-
-        if (this.is_recordpicker) {
-            window.$store.commit("system/is_recordpicker", true);
-        } else {
-            window.$store.commit("system/is_recordpicker", false);
-        }
-    },
-
-    emits: {
-        // Validate submit event
-        "bv::dropdown::show": (bvEvent) => {
-            this.table_style = { "padding-bottom": "700px" };
-            return true;
-        },
-        "bv::dropdown::hide": (bvEvent) => {
-            this.table_style = { "padding-bottom": "0px" };
-            return true;
-        },
+        setting: { type: Object, default: {} },
     },
     data() {
         return {
@@ -231,6 +186,7 @@ export default {
             loading_message: "Fetching Data.",
             show_delete_btn: false,
             show_advance_form: false,
+            has_checked_items: false,
             select_list: {},
             checkedItems: [],
             opeList: [],
@@ -261,6 +217,15 @@ export default {
                 selected: [],
                 headers: [],
             },
+            settings: {
+                is_recordpicker: false,
+                has_add_button: true,
+                hide_toolbar: false,
+                hide_delete_button: false,
+                hide_action_button: false,
+                hide_search_form: false,
+                hide_select_checkbox: false,
+            }
         };
     },
     watch: {
@@ -272,6 +237,8 @@ export default {
         /*pagination () {
             this.fetchRecords();
         },*/
+
+
         model: {
             handler() {
                 this.fetchRecords();
@@ -286,25 +253,65 @@ export default {
             }
         },
     },
+    created() {
+        this.settings = { ...this.settings, ...this.setting };
+        console.log(this.settings);
 
-    methods: {
-        loadPage: function (page) {
+        this.preparePathParam();
+        this.processDropdownMenu();
+        this.processFieldList();
+        this.presetTableStructure();
+        this.fetchRecords();
 
-            if (page < 1) {
-                page = 1;
-            } else if (page > this.pagination.pages) {
-                page = this.pagination.pages;
+        window.$store.commit("system/subtitle", this.title);
+        window.$store.commit("system/has_search", true);
+        window.$store.commit("system/search_fields", this.search_fields);
+        window.$store.commit("system/is_list", true);
+        window.$store.commit("system/is_edit", false);
+
+        if (this.is_recordpicker) {
+            window.$store.commit("system/is_recordpicker", true);
+        } else {
+            window.$store.commit("system/is_recordpicker", false);
+        }
+    },
+
+    mounted() {
+        this.$emitter.on('search-records', async (status) => {
+            if (status) {
+                this.fetchRecords();
             }
+        });
 
-            this.pagination.page = page;
+        this.$emitter.on('delete-record', async (setting) => {
+
+            await this.deleteRecords(setting.ids);
 
             this.fetchRecords();
+
+            if (Object.prototype.hasOwnProperty.call(setting, "path")) {
+                if (setting.path.type == 'link') {
+                    this.$router.push(setting.path.link);
+                } else {
+                    this.$router.push({ name: setting.path.link });
+                }
+            }
+        });
+    },
+
+    emits: {
+        // Validate submit event
+        "bv::dropdown::show": (bvEvent) => {
+            this.table_style = { "padding-bottom": "700px" };
+            return true;
         },
-        getNumbers: function (start, stop) {
-            var tmp_array = new Array(stop - start).fill(start).map((n, i) => n + i);
-            tmp_array.push(stop);
-            return tmp_array;
+        "bv::dropdown::hide": (bvEvent) => {
+            this.table_style = { "padding-bottom": "0px" };
+            return true;
         },
+    },
+
+    methods: {
         getCardClassName(prefix = '') {
             return (!this.is_recordpicker) ? prefix + ' shadow-md m-1 mt-3' : ' border-0';
         },
@@ -319,32 +326,85 @@ export default {
         changeExpandStatus(id, expanded) {
             this.$set(this.expanded, id, !expanded[id]);
         },
-        preparePathParam() {
-            var path_param = [];
+        deleteCheckedItems() {
 
-            if (this.path_param.length !== 0) {
-                path_param = this.path_param;
+            var that = this;
+
+            if (!that.checkedItems.length) {
+                this.$confirm({ message: ' There are no Selected Items.', button: { yes: 'OK' }, });
             } else {
-                path_param = [this.module, this.table];
+                var message = `Are you sure you want to <b class="whitespace-nowrap text-red-500">Delete All ${that.checkedItems.length} </b> selected Records?`;
+                this.$confirm(
+                    {
+                        message: message, button: { no: 'No', yes: 'Yes' },
+                        callback: confirm => {
+                            if (confirm) {
+                                that.deleteRecords(that.checkedItems);
+                                that.checkedItems = [];
+                                that.has_checked_items = false;
+
+                            }
+                        }
+                    }
+                )
+            }
+        },
+        checkedItemsAll() {
+
+            if (!this.has_checked_items) {
+
+                this.items.forEach(item => {
+                    this.checkedItems.push(item.id);
+                });
+
+                this.has_checked_items = true;
+            } else {
+                this.checkedItems = [];
+                this.has_checked_items = false;
+
             }
 
-            this.$store.commit('system/search_path_params', path_param);
+        },
+        preparePathParam() {
 
-            this.processed_path_param = window.$func.pathParamHelper(path_param);
+            this.$store.commit('system/search_path_params', this.path_param);
+
+            this.processed_path_param = window.$func.pathParamHelper(this.path_param);
+            console.log(this.processed_path_param);
+
+            this.$store.commit('system/path_params', this.processed_path_param);
         },
         processDropdownMenu() {
             const t = this;
 
-            t.dropdown_menu.forEach(function (dropdown_menu_single) {
-                t.dropdown_menu_list.push(dropdown_menu_single);
-            });
-
             t.dropdown_menu_list.push({
                 title: "Edit",
                 icon: "fa fa-pencil",
+                type: "router",
                 name: this.processed_path_param.dotted + ".edit",
                 param: ["id"],
             });
+
+            t.dropdown_menu.forEach(function (dropdown_menu_single) {
+                if (Object.prototype.hasOwnProperty.call(dropdown_menu_single, "type")) {
+                    dropdown_menu_single['type'] = "event";
+                }
+                t.dropdown_menu_list.push(dropdown_menu_single);
+            });
+
+            if (!this.settings.hide_delete_button) {
+                t.dropdown_menu_list.push({
+                    title: "Delete",
+                    icon: "fa fa-trash",
+                    type: "event",
+                    name: this.processed_path_param.dotted + ".delete",
+                    event: "delete-record",
+                    return: this.processed_path_param.dotted + ".list",
+                });
+
+            }
+
+
         },
         processFieldList() {
             var t = this;
@@ -364,13 +424,15 @@ export default {
         presetTableStructure() {
             var t = this;
 
-            if (window.is_backend) {
+            if (!this.settings.is_recordpicker && !this.settings.hide_action_button) {
                 t.table_list.headers.push({
                     label: "",
                     key: "id",
                     sortable: false,
-                    width: "10px",
+                    class: " w-2.5 "
                 });
+
+
             }
 
             t.table_fields.forEach(function (table_field, index) {
@@ -418,6 +480,22 @@ export default {
                 });
             });
         },
+        loadPage: function (page = '') {
+
+            if (page == '') {
+                page = this.pagination.page;
+            }
+
+            if (page < 1) {
+                page = 1;
+            } else if (page > this.pagination.pages) {
+                page = this.pagination.pages;
+            }
+
+            this.pagination.page = page;
+
+            this.fetchRecords();
+        },
         fetchRecords() {
             var t = this;
             var query_params = t.$route.query;
@@ -428,22 +506,15 @@ export default {
                 }
             }
 
-            window.$func.fetchRecordsHelper(
-                this,
-                this.processed_path_param,
-                this.search_fields,
-                this.table_fields
-            );
+            window.$func.fetchRecordsHelper(this, this.processed_path_param, this.search_fields, this.table_fields);
         },
 
-        deleteRecord() {
-            window.$func.deleteRecordHelper(
-                this,
-                this.processed_path_param,
-                this.returnUrl
-            );
+        async deleteRecords(ids) {
+            var results = await window.$func.deleteRecordHelper(this, this.processed_path_param, ids);
 
             this.fetchRecords();
+
+            return results;
         },
 
         updatePagination(pagination) {

@@ -1,29 +1,75 @@
 <template>
 
     <template v-if="$store.state.system.loading">
+        <!-- backdrop-blur-sm-->
         <div wire:loading
-            class="fixed top-0 left-0 right-0 bottom-0 w-full h-screen z-50 overflow-hidden bg-gradient-to-r from-indigo-500/25 via-purple-500/25 to-indigo-500/25 flex flex-col items-center justify-center">
-            <div class="fa-3x text-blue-700 ">
+            class="fixed top-0 left-0 right-0 bottom-0 w-full h-screen z-50 overflow-hidden bg-gray-800/[.05] flex flex-col items-center justify-center">
+            <div class="fa-3x text-blue-600">
                 <i class="fas fa-spinner fa-spin"></i>
             </div>
-            <h2 class="text-center text-blue-800 text-xl font-semibold">Loading...</h2>
-            <p class="w-1/3 text-center text-blue-800">This may take a few seconds, please don't close this page.</p>
+            <h2 class="text-center text-blue-700 text-xl font-semibold">Loading...</h2>
+            <p class="w-1/3 text-center text-blue-600">This may take a few seconds, please don't close this page.</p>
         </div>
 
     </template>
 
-    <div class="mybizna-app">
-        <app-topbar></app-topbar>
-        <app-bar-nav-menu></app-bar-nav-menu>
+    <notifications position="top right" />
+    <vue3-confirm-dialog></vue3-confirm-dialog>
 
-        <main v-if="$store.getters['auth/loggedIn']" class="p-0">
-            <div class="app-content-container boxed-container">
+    <div class="mybizna-app overflow-x-hidden">
+
+        <template v-if="$store.getters['auth/loggedIn']">
+
+            <template v-if="$store.state.system.menu_type == 'sidebar'">
+                <app-topbar-sidebar :windowWidth="windowWidth"></app-topbar-sidebar>
+
+                <div v-if="windowWidth >= $responsive_point" class="row mt-10 h-screen">
+
+                    <div v-if="$store.state.system.sidebar_show"
+                        class="mr-0 col-sm-2 invisible md:visible bg-gradient-to-r from-indigo-50 to-indigo-100 border-r-2 border-r border-indigo-200">
+                        <app-sidebar></app-sidebar>
+                    </div>
+                    <div :class="$store.state.system.sidebar_show ? 'col-sm-10' : 'col-sm-12'" class="ml-0 pl-0">
+                        <!--  v-if="$store.state.system.is_list || $store.state.system.is_edit" -->
+                        <app-topbar-actions></app-topbar-actions>
+                        <main class="p-0">
+                            <div class="app-content-container boxed-container">
+                                <router-view></router-view>
+                            </div>
+                        </main>
+                    </div>
+                </div>
+                <div v-else class="mt-10">
+                    <app-topbar-actions></app-topbar-actions>
+                    <main class="p-0">
+                        <div class="app-content-container boxed-container">
+                            <router-view></router-view>
+                        </div>
+                    </main>
+                </div>
+
+
+            </template>
+            <template v-else>
+                <app-topbar></app-topbar>
+                <app-bar-nav-menu></app-bar-nav-menu>
+                <main class="p-0">
+                    <div class="app-content-container boxed-container">
+                        <router-view></router-view>
+                    </div>
+                </main>
+
+            </template>
+
+
+        </template>
+        <template v-else>
+            <main class="p-0">
                 <router-view></router-view>
-            </div>
-        </main>
-        <main v-else class="p-0">
-            <router-view></router-view>
-        </main>
+            </main>
+        </template>
+
+
 
         <footer v-if="$store.getters['auth/loggedIn']" app inset color="transparent" absolute height="56"
             class="footer mt-auto py-3 bg-light">
@@ -45,11 +91,17 @@ import { useStore } from "vuex";
 import { useRouter } from "@/utils";
 import AppBarNavMenu from "@/components/widgets/AppBarNavMenu.vue";
 import AppTopbar from "@/components/widgets/AppTopbar.vue";
+import AppSidebar from "@/components/widgets/AppSidebar.vue";
+import AppTopbarSidebar from "@/components/widgets/AppTopbarSidebar.vue";
+import AppTopbarActions from "@/components/widgets/AppTopbarActions.vue";
 
 export default {
     components: {
         AppBarNavMenu,
         AppTopbar,
+        AppTopbarSidebar,
+        AppSidebar,
+        AppTopbarActions,
     },
     setup() {
         const { route } = useRouter();
@@ -57,6 +109,10 @@ export default {
         const store = useStore();
 
         window.$store = store;
+
+        if (window.innerWidth >=  window.responsive_point) {
+            window.$store.commit("system/sidebar_show", true);
+        }
 
         const resolveLayout = computed(() => {
             // Handles initial route
@@ -71,6 +127,27 @@ export default {
             resolveLayout,
         };
     },
+    create() {
+        alert(window.innerWidth);
+    },
+    data() {
+        return {
+            windowWidth: window.innerWidth,
+        }
+    },
+    mounted() {
+        window.onresize = () => {
+            this.windowWidth = window.innerWidth;
+            window.$store.commit("system/window_width", this.windowWidth);
+        }
+
+        window.onload = () => {
+            this.windowWidth = window.innerWidth;
+            window.$store.commit("system/window_width", this.windowWidth);
+        }
+    }
+
+
 };
 </script>
 

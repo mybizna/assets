@@ -12,7 +12,20 @@
                     <hr class="dropdown-divider">
                 </li>
                 <li v-else>
-                    <a class="dropdown-item" :href="dropdown_menu.link" :alt="dropdown_menu.title">
+                    <a v-if="dropdown_menu.type == 'event'" class="dropdown-item"
+                        @click="firePassedEvent(dropdown_menu, pitem)" :alt="dropdown_menu.title">
+                        <i :class="dropdown_menu.icon + ' text-blue-300'"></i>
+                        {{ dropdown_menu.title }}
+                    </a>
+                    <router-link v-else-if="dropdown_menu.type == 'router' || dropdown_menu.type == 'route'"
+                        class="dropdown-item" :to="{ name: dropdown_menu.name, params: pitem }"
+                        :alt="dropdown_menu.title">
+                        <i :class="dropdown_menu.icon + ' text-blue-300'"></i>
+                        {{ dropdown_menu.title }}
+                    </router-link>
+                    <a v-else class="dropdown-item" :alt="dropdown_menu.title"
+                        :href="processLink(dropdown_menu, pitem)">
+                        <i :class="dropdown_menu.icon + ' text-blue-300'"></i>
                         {{ dropdown_menu.title }}
                     </a>
                 </li>
@@ -30,50 +43,46 @@ export default {
         dropdown_menu_list: Array,
         field_list: Array,
     },
-    created () {
-        this.prepareMenuLinks();
-    },
-    data () {
+    data() {
         return {
             generated_url: "",
-            dropdown_menu: [],
         };
     },
     methods: {
-        prepareMenuLinks () {
-            var t = this;
+         firePassedEvent(dropdown_menu, item) {
+            var that = this;
+            var message = "Are you sure you want to delete this record? <br> <br>";
+            var fields = ['first_name', '_lastname', 'name', 'username', 'id', 'title', 'database'];
 
-            t.dropdown_menu_list.forEach(function (dropdown_menu_single) {
-                var generated_url = "";
-                var url_obj = "";
-
-                if (dropdown_menu_single.param && dropdown_menu_single.param.length) {
-                    var param_list = dropdown_menu_single.param;
-                    var param = {};
-
-                    param_list.forEach(function (param_single) {
-                        param[param_single] = t.pitem[param_single];
-                    });
-
-                    url_obj = t.$router.resolve({
-                        name: dropdown_menu_single.name,
-                        params: param,
-                    });
-
-
-                    dropdown_menu_single["link"] = url_obj.href;
-                } else {
-                    url_obj = t.$router.resolve({
-                        name: dropdown_menu_single.name,
-                    });
-
-                    dropdown_menu_single["link"] = url_obj.href;
+            for (const [key, value] of Object.entries(item)) {
+                if (fields.includes(key)) {
+                    message += `<div class="inline-block mx-2 mb-1 bg-gray-50 text-gray-800 text-sm  px-2.5 py-1 rounded dark:bg-gray-900 dark:text-gray-300"><b class="uppercase">${key}:</b> ${value}</div>`;
                 }
+            }
 
-                t.dropdown_menu = dropdown_menu_single;
-            });
+            message += '<br>';
+
+            this.$confirm(
+                {
+                    message: message, button: { no: 'No', yes: 'Yes' },
+                    callback:  confirm => {
+                        if (confirm) {
+                            console.log(dropdown_menu);
+                            var path = { type: 'router', link: dropdown_menu.return };
+                            that.$emitter.emit(dropdown_menu.event, { ids: [item.id], path: path });
+                        }
+                    }
+                }
+            )
+
 
         },
+
+        processLink(dropdown_menu, item) {
+            return dropdown_menu.link;
+        },
+
+
     },
 };
 </script>
