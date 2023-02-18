@@ -62,7 +62,7 @@ class MybiznaAssetsProvider extends ServiceProvider
 
     }
 
-    protected function migrationExists($mgr)
+    protected function migrationFileExists($mgr)
     {
         $path = database_path('migrations/');
         $files = scandir($path);
