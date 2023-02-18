@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
-use Legodion\Lucid\Commands\MigrateCommand;
+use Mybizna\Automigrator\Commands\MigrateCommand;
 use Modules\Base\Classes\Datasetter;
 
 class MybiznaAssetsProvider extends ServiceProvider
