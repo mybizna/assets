@@ -29,26 +29,34 @@
                         <thead>
                             <tr class="bg-slate-100 px-7">
 
-                                <td v-if="!settings.is_recordpicker && !settings.hide_action_button"
+                                <th v-if="!settings.is_recordpicker && !settings.hide_action_button"
                                     class="text-center uppercase w-2.5 whitespace-nowrap">
                                     <input @click="checkedItemsAll" type="checkbox" />
                                     <span class="form-check-sign">
                                         <span class="check"></span>
                                     </span>
-                                </td>
-
-                                <th class="uppercase" scope="col" v-for="(
-                                        table_field, index
-                                    ) in table_list.headers" :key="index" :style="table_field.style"
-                                    :class="table_field.class + ' text-center uppercase whitespace-nowrap p-1.5'">
-                                    {{ table_field.label }}
                                 </th>
+
+                                <th v-if="!this.settings.is_recordpicker && !this.settings.hide_action_button"
+                                    class="uppercase w-2.5"></th>
+
+                                <slot name="header">
+                                    <th class="uppercase" scope="col" v-for="(
+                                                                table_field, index
+                                                            ) in table_list.headers" :key="index"
+                                        :style="table_field.style"
+                                        :class="table_field.class + ' text-center uppercase whitespace-nowrap p-1.5'">
+                                        {{ table_field.label }}
+                                    </th>
+                                </slot>
+
                             </tr>
                         </thead>
                         <tbody class="border-none">
                             <template v-if="items.length">
                                 <tr v-for="(item, index) in items" :key="index"
                                     class="border-b-sky-200 hover:bg-slate-50 border-b border-b-sky-100">
+
                                     <td v-if="!settings.is_recordpicker && !settings.hide_action_button"
                                         class="text-center">
                                         <input :value="item.id" v-model="checkedItems" class="form-check-input"
@@ -65,16 +73,18 @@
                                             @click="recordPicker(item.id)">Select</a>
                                     </td>
 
-                                    <template v-for="(table_field, index) in table_fields">
-                                        <slot :name="key" :row="row">
-                                            <template v-if="'actions' !== key">
-                                                <td-render :key="index" :field_list="field_list" :pitem="item"
-                                                    :data_field="table_field" :class_name="
-                                                        getClassName(table_field)
-                                                    "></td-render>
-                                            </template>
-                                        </slot>
-                                    </template>
+                                    <slot name="body" :item="item">
+                                        <template v-for="(table_field, index) in table_fields">
+                                            <slot :name="table_field.name" :item="item">
+                                                <template v-if="'actions' !== table_field.name">
+                                                    <td-render :key="index" :field_list="field_list" :pitem="item"
+                                                        :data_field="table_field" :class_name="
+                                                            getClassName(table_field)
+                                                        "></td-render>
+                                                </template>
+                                            </slot>
+                                        </template>
+                                    </slot>
                                 </tr>
                             </template>
                             <tr class="border-b-sky-200" v-else>
@@ -90,36 +100,37 @@
             <div class="card-foot">
 
                 <pagination v-if="$store.state.system.window_width < ($responsive_point - 268)" :pagination="pagination"
-                    :loadPage="loadPage">
+                    :loadPage="loadPage" @update_page="updatePage">
                 </pagination>
 
                 <div class="flex">
                     <div class="flex-auto">
                         <FormKit id="page_limit" type="select" v-model="pagination.limit" :options="pagination.limits"
-                            validation="required" input-class="$reset form-select form-select-sm
-                                    mt-2
-                                    ml-2
-                                    appearance-none
-                                    inline-block
-                                    w-16
-                                    px-2
-                                    py-1
-                                    text-sm
-                                    font-normal
-                                    text-gray-700
-                                    bg-white bg-clip-padding bg-no-repeat
-                                    border border-solid border-gray-300
-                                    rounded
-                                    transition
-                                    ease-in-out
-                                    m-0
-                                    focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none" />
+                            validation="required"
+                            input-class="$reset form-select form-select-sm
+                                                            mt-2
+                                                            ml-2
+                                                            appearance-none
+                                                            inline-block
+                                                            w-16
+                                                            px-2
+                                                            py-1
+                                                            text-sm
+                                                            font-normal
+                                                            text-gray-700
+                                                            bg-white bg-clip-padding bg-no-repeat
+                                                            border border-solid border-gray-300
+                                                            rounded
+                                                            transition
+                                                            ease-in-out
+                                                            m-0
+                                                            focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none" />
 
 
                     </div>
                     <div class="flex-auto">
                         <pagination v-if="$store.state.system.window_width >= ($responsive_point - 268)"
-                            :pagination="pagination" :loadPage="loadPage"></pagination>
+                            :pagination="pagination" :loadPage="loadPage" @eventname="updatePage"></pagination>
                     </div>
                     <div class="flex-auto">
                         <div v-if="!settings.is_recordpicker && !settings.hide_action_button && !(settings.hide_delete_button && !mass_actions.length)"
@@ -148,20 +159,18 @@
 </template>
 
 <script>
+/* eslint-disable vue/no-mutating-props */
+import TdRender from "@/components/widgets/TdRender";
+import MenuDropdown from "@/components/widgets/MenuDropdown";
+import Pagination from "@/components/widgets/Pagination";
+import SearchForm from "@/components/common/SearchForm";
+
 export default {
     components: {
-        TdRender: window.$func.fetchComponent(
-            "components/widgets/TdRender.vue"
-        ),
-        MenuDropdown: window.$func.fetchComponent(
-            "components/widgets/MenuDropdown.vue"
-        ),
-        Pagination: window.$func.fetchComponent(
-            "components/widgets/Pagination.vue"
-        ),
-        SearchForm: window.$func.fetchComponent(
-            "components/common/SearchForm.vue"
-        ),
+        TdRender,
+        MenuDropdown,
+        Pagination,
+        SearchForm
     },
     props: {
         model: Object,
@@ -169,15 +178,15 @@ export default {
         title: { type: String, default: "Listing", },
         classes: { type: String, default: "", },
         passed_return_url: { type: String, default: "", },
-        dropdown_menu: { type: Array, default: [] },
-        path_param: { type: Array, default: [] },
-        search: { type: Array, default: [] },
-        search_fields: { type: Array, default: [] },
-        table_fields: { type: Array, default: [] },
-        schema_fields: { type: Array, default: [] },
-        mass_actions: { type: Array, default: [] },
+        dropdown_menu: { type: Array, default: () => [] },
+        path_param: { type: Array, default: () => [] },
+        search: { type: Array, default: () => [] },
+        search_fields: { type: Array, default: () => [] },
+        table_fields: { type: Array, default: () => [] },
+        schema_fields: { type: Array, default: () => [] },
+        mass_actions: { type: Array, default: () => [] },
         recordPicker: { type: Object, default: () => { } },
-        setting: { type: Object, default: {} },
+        setting: { type: Object, default: () => { } },
     },
     data() {
         return {
@@ -312,6 +321,9 @@ export default {
     },
 
     methods: {
+        updatePage(page = 0) {
+            this.pagination.page = page;
+        },
         getCardClassName(prefix = '') {
             return (!this.is_recordpicker) ? prefix + ' shadow-md m-1 mt-3' : ' border-0';
         },
@@ -424,16 +436,6 @@ export default {
         presetTableStructure() {
             var t = this;
 
-            if (!this.settings.is_recordpicker && !this.settings.hide_action_button) {
-                t.table_list.headers.push({
-                    label: "",
-                    key: "id",
-                    sortable: false,
-                    class: " w-2.5 "
-                });
-
-
-            }
 
             t.table_fields.forEach(function (table_field, index) {
                 var align = "left";
