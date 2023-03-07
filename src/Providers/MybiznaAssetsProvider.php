@@ -82,7 +82,7 @@ class MybiznaAssetsProvider extends ServiceProvider
 
         $DS = DIRECTORY_SEPARATOR;
 
-        $groups = (is_file('../readme.txt')) ? ['Modules/*', '../../*/Modules/*'] : ['Modules/*'];
+        $groups = (is_file(base_path('../readme.txt'))) ? [base_path('Modules/*'), base_path('../../*/Modules/*')] : [base_path('Modules/*')];
 
         foreach ($groups as $key => $group) {
             $paths = array_merge($paths, glob(base_path($group)));
@@ -119,7 +119,7 @@ class MybiznaAssetsProvider extends ServiceProvider
         $datasetter = new Datasetter();
 
         $paths = [];
-        $groups = (is_file('../readme.txt')) ? ['Modules/*', '../../*/Modules/*'] : ['Modules/*'];
+        $groups = (is_file(base_path('../readme.txt'))) ? [base_path('Modules/*'), base_path('../../*/Modules/*')] : [base_path('Modules/*')];
 
         foreach ($groups as $key => $group) {
             $paths = array_merge($paths, glob(base_path($group)));
