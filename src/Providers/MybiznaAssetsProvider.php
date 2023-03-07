@@ -10,8 +10,8 @@ use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
-use Mybizna\Automigrator\Commands\MigrateCommand;
 use Modules\Base\Classes\Datasetter;
+use Mybizna\Automigrator\Commands\MigrateCommand;
 
 class MybiznaAssetsProvider extends ServiceProvider
 {
@@ -78,24 +78,25 @@ class MybiznaAssetsProvider extends ServiceProvider
     }
     private function moduleComponents()
     {
+        $paths = [];
 
         $DS = DIRECTORY_SEPARATOR;
 
-        $modules_path = realpath(base_path()) . $DS . 'Modules';
+        $groups = (is_file('../readme.txt')) ? ['Modules/*', '../../*/Modules/*'] : ['Modules/*'];
 
-        if (is_dir($modules_path)) {
-            $dir = new \DirectoryIterator($modules_path);
-            foreach ($dir as $fileinfo) {
-                if (!$fileinfo->isDot() && $fileinfo->isDir()) {
-                    $module_name = $fileinfo->getFilename();
-                    $module_folder = $modules_path . $DS . $module_name . $DS . 'views';
-                    if (File::isDirectory($module_folder)) {
-                        $this->publishes([
-                            base_path('Modules/' . $module_name . '/views') => public_path('mybizna/assets/' . Str::lower($module_name)),
-                        ], 'laravel-assets');
-                    }
+        foreach ($groups as $key => $group) {
+            $paths = array_merge($paths, glob(base_path($group)));
+        }
 
-                }
+        foreach ($paths as $key => $path) {
+            $path_arr = array_reverse(explode('/', $path));
+            $module_name = $path_arr[0];
+
+            $module_folder = $path . $DS . 'views';
+            if (File::isDirectory($module_folder)) {
+                $this->publishes([
+                    base_path('Modules/' . $module_name . '/views') => public_path('mybizna/assets/' . Str::lower($module_name)),
+                ], 'laravel-assets');
             }
         }
 
@@ -114,43 +115,40 @@ class MybiznaAssetsProvider extends ServiceProvider
 
     private function processModule()
     {
-        $realpath = realpath(base_path());
         $migrate_command = new MigrateCommand();
         $datasetter = new Datasetter();
 
-        $DS = DIRECTORY_SEPARATOR;
-        $modules_path = $realpath . $DS . 'Modules';
+        $paths = [];
+        $groups = (is_file('../readme.txt')) ? ['Modules/*', '../../*/Modules/*'] : ['Modules/*'];
 
-        if (is_dir($modules_path)) {
+        foreach ($groups as $key => $group) {
+            $paths = array_merge($paths, glob(base_path($group)));
+        }
 
-            $modules = [];
-            $new_versions = [];
-            $need_migration = false;
-            $versions = $this->getVersions();
+        $modules = [];
+        $new_versions = [];
+        $need_migration = false;
+        $versions = $this->getVersions();
 
-            $dir = new \DirectoryIterator($modules_path);
+        foreach ($paths as $key => $path) {
+            $path_arr = array_reverse(explode('/', $path));
+            $module_name = $path_arr[0];
 
-            foreach ($dir as $fileinfo) {
-                if (!$fileinfo->isDot() && $fileinfo->isDir()) {
-                    $module_name = $fileinfo->getFilename();
+            $composer = $this->getComposer($module_name);
 
-                    $composer = $this->getComposer($module_name);
-
-                    if (!isset($versions[$module_name]) || $versions[$module_name] != $composer['version']) {
-                        $need_migration = true;
-                    }
-
-                    $modules[$module_name] = true;
-                    $new_versions[$module_name] = $composer['version'];
-                }
+            if (!isset($versions[$module_name]) || $versions[$module_name] != $composer['version']) {
+                $need_migration = true;
             }
 
-            ksort($modules);
-            ksort($new_versions);
-
-            $this->saveFile($realpath . $DS . 'modules_statuses.json', $modules);
-            $this->saveFile($realpath . $DS . 'versions.json', $new_versions);
+            $modules[$module_name] = true;
+            $new_versions[$module_name] = $composer['version'];
         }
+
+        ksort($modules);
+        ksort($new_versions);
+
+        $this->saveFile(realpath(base_path()) . DIRECTORY_SEPARATOR . 'modules_statuses.json', $modules);
+        $this->saveFile(realpath(base_path()) . DIRECTORY_SEPARATOR . 'versions.json', $new_versions);
 
         if ($need_migration) {
             Artisan::call('cache:table');
