@@ -2,6 +2,7 @@
 
 namespace Mybizna\Assets\Providers;
 
+use Config;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
 
@@ -24,6 +25,13 @@ class MybiznaAssetsProvider extends ServiceProvider
      */
     public function boot()
     {
+        if (defined('DB_NAME')) {
+            Config::set('app.key', MYBIZNA_APPKEY);
+            Config::set('database.connections.mysql.database', DB_NAME);
+            Config::set('database.connections.mysql.username', DB_USER);
+            Config::set('database.connections.mysql.password', DB_PASSWORD);
+            Config::set('database.connections.mysql.host', DB_HOST);
+        }
 
         $this->publishes([
             base_path('vendor/mybizna/assets/src/mybizna') => public_path('mybizna'),
