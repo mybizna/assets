@@ -37,10 +37,10 @@ class MybiznaAssetsProvider extends ServiceProvider
             base_path('vendor/mybizna/assets/src/mybizna') => public_path('mybizna'),
         ], 'laravel-assets');
 
-        $migrationFileName = 'add_fields_in_users_table.php';
+        $migrationFileName = 'add_fields_in_users_table';
         if (!$this->migrationFileExists($migrationFileName)) {
             $this->publishes([
-                __DIR__ . "/../database/migrations/{$migrationFileName}.stub" => database_path('migrations/' . date('Y_m_d_His', time()) . '_' . $migrationFileName),
+                __DIR__ . "/../database/migrations/{$migrationFileName}.stub" => database_path('migrations/' . date('Y_m_d_His', time()) . '_' . $migrationFileName.'.php'),
             ], 'migrations');
         }
 
