@@ -7,7 +7,7 @@
     "restful",
     "laravel"
   ],
-  "version": "23.08.001",
+  "version": "23.08.002",
   "license": "GPL-3.0-or-later",
   "autoload": {
     "psr-4": {
