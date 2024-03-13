@@ -40,7 +40,7 @@ class MybiznaAssetsProvider extends ServiceProvider
         $migrationFileName = 'add_fields_in_users_table';
         if (!$this->migrationFileExists($migrationFileName)) {
             $this->publishes([
-                __DIR__ . "/../database/migrations/{$migrationFileName}.stub" => database_path('migrations/' . date('Y_m_d_His', time()) . '_' . $migrationFileName.'.php'),
+                __DIR__ . "/../database/migrations/{$migrationFileName}.stub" => database_path('migrations/' . date('Y_m_d_His', time()) . '_' . $migrationFileName . '.php'),
             ], 'migrations');
         }
 
@@ -49,6 +49,12 @@ class MybiznaAssetsProvider extends ServiceProvider
     protected function migrationFileExists($mgr)
     {
         $path = database_path('migrations/');
+
+        // Check if if $path is a directory
+        if (!is_dir($path)) {
+            return false;
+        }
+
         $files = scandir($path);
         $pos = false;
         foreach ($files as &$value) {
