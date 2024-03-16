@@ -35,6 +35,8 @@ class MybiznaAssetsProvider extends ServiceProvider
 
         $this->publishes([
             base_path('vendor/mybizna/assets/src/mybizna') => public_path('mybizna'),
+            base_path('vendor/mybizna/assets/src/templates/admin') => base_path('templates/admin'),
+            base_path('vendor/mybizna/assets/src/templates/guest') => base_path('templates/guest'),
         ], 'laravel-assets');
 
         $migrationFileName = 'add_fields_in_users_table';
